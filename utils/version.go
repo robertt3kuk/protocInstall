@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -183,6 +184,40 @@ func InstallProtoBufLinuxGithub(version string) error {
 	}
 
 	return nil
+}
+
+func DetectLinuxDistribution() (string, string, error) {
+	file, err := os.Open("/etc/os-release")
+	if err != nil {
+		return "", "", fmt.Errorf("failed to open /etc/os-release: %w", err)
+	}
+	defer file.Close()
+
+	var id, versionID, idLike string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "ID=") {
+			id = strings.Trim(strings.TrimPrefix(line, "ID="), `"`)
+		} else if strings.HasPrefix(line, "VERSION_ID=") {
+			versionID = strings.Trim(strings.TrimPrefix(line, "VERSION_ID="), `"`)
+		} else if strings.HasPrefix(line, "ID_LIKE=") {
+			idLike = strings.Trim(strings.TrimPrefix(line, "ID_LIKE="), `"`)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", "", fmt.Errorf("error reading /etc/os-release: %w", err)
+	}
+	if id == "" {
+		return "", "", fmt.Errorf("could not determine Linux distribution")
+	}
+
+	// Handle SUSE variants
+	if strings.Contains(strings.ToLower(id), "suse") || strings.Contains(strings.ToLower(idLike), "suse") {
+		return "suse", versionID, nil
+	}
+
+	return strings.ToLower(id), versionID, nil
 }
 
 func RemovePackageManagerProtobuf(distro string) error {

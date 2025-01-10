@@ -59,11 +59,30 @@ func devToolsInstall() error {
 		}
 	case "linux":
 		log.Printf("Processing installation for Linux")
+		log.Printf("Initializing version variables")
 		var stableProtocVersion string
 		var localProtocVersion string
 
-		stableProtocVersion, err := utils.GetStableProtocVersion()
+		log.Printf("Detecting Linux distribution")
+		distro, _, err := utils.DetectLinuxDistribution()
 		if err != nil {
+			log.Printf("Failed to detect Linux distribution: %v", err)
+			return fmt.Errorf("failed to detect linux distribution: %w", err)
+		}
+		log.Printf("Detected Linux distribution: %s", distro)
+
+		log.Printf("Removing existing protobuf from package manager")
+		err = utils.RemovePackageManagerProtobuf(distro)
+		if err != nil {
+			log.Printf("Failed to remove existing protobuf: %v", err)
+			return fmt.Errorf("failed to remove package manager protobuf: %w", err)
+		}
+		log.Printf("Successfully removed existing protobuf installation")
+
+		log.Printf("Fetching stable protoc version")
+		stableProtocVersion, err = utils.GetStableProtocVersion()
+		if err != nil {
+			log.Printf("Failed to get stable protoc version: %v", err)
 			return fmt.Errorf("failed to get stable protoc version: %w", err)
 		}
 		log.Printf("Retrieved stable version: %s", stableProtocVersion)
