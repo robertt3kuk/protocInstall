@@ -95,6 +95,10 @@ func devToolsInstall() error {
 			if err = utils.InstallProtoBufLinuxGithub(stableProtocVersion); err != nil {
 				return fmt.Errorf("failed to install protobuf on linux: %w", err)
 			}
+			err = utils.RunCommand("export", "PATH=$PATH:/home/user/protoc/bin")
+			if err != nil {
+				return fmt.Errorf("failed to add protoc to path: %w", err)
+			}
 			log.Printf("Protobuf installed successfully, checking version")
 			_, err = utils.RunCommandWithOutput("protoc", "--version")
 			if err != nil {
