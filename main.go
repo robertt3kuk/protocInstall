@@ -120,6 +120,14 @@ func devToolsInstall() error {
 				return fmt.Errorf("failed to update protobuf on linux: %w", err)
 			}
 			log.Printf("Protobuf updated successfully")
+			err = utils.RunCommand("export", "PATH=$PATH:/home/user/protoc/bin")
+			if err != nil {
+				return fmt.Errorf("failed to add protoc to path: %w", err)
+			}
+			err = utils.RunCommand("protoc", "--version")
+			if err != nil {
+				return fmt.Errorf("failed to get protoc version after installation: %w", err)
+			}
 		}
 
 	default:
